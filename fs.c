@@ -200,6 +200,33 @@ int writeFile(char fileName[], char content[])
     return 0;
 }
 
+// read
+int readFile(char fileName[], int length)
+{
+    printf("read()");
+    int index = findFile(fileName);
+    if(index == -1)
+    {
+        printf("Not found\n");
+        return -1;
+    }
+    int fcbBlock = currentDir->items[index].startBlock;
+    struct FCB* fcb = (struct FCB*)getBlockAddr(fcbBlock);
+    if (fcb->protect < 1) {
+        printf("Permission denied \n"); // 没有读权限
+        return -1;
+    }
+    int dataSize = fcb->dataSize;
+    char* data = (char*)getBlockAddr(fcb->blockNum);
+    for(int i=0; i<length && fcb->readptr < dataSize; i++, fcb->readptr++)
+    {
+        printf("\033[31m%c\033[0m", *(data + fcb->readptr));
+    }
+    printf("\n");
+    return 0;
+}
+
+
 void start()
 {
     printf("start()");
