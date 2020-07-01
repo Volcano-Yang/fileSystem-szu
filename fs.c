@@ -147,6 +147,34 @@ int removeDir(char dirName[])
 }
 
 
+// 创建文件, touch fileName size auth
+int createFile(char fileName[], int fileSize, int auth)
+{
+    printf("createFile()");
+    // 获得1kb给FCB的空间
+    int fcbBlock = getBlock(1);
+    if(fcbBlock == -1) {
+        printf("get block fail");
+        return -1;
+    }
+    // 获取文件数据空间
+    int FileBlock = getBlock(fileSize);
+    if(FileBlock == -1) {
+        printf("get block fail");
+        return -1;
+    }
+    // 创建FCB
+    if(creatFCB(fcbBlock, FileBlock, fileSize, auth) == -1) {
+        printf("create FCB fail");
+        return -1;
+    }
+    //添加到当前目录
+
+    addToDir(currentDir, fileName, 0, fcbBlock);
+ 
+    return 0;
+}
+
 void start()
 {
     printf("start()");
