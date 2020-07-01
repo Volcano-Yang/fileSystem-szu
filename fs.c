@@ -72,6 +72,36 @@ int releaseBlock(int blockNum, int blockSize)
     return 0;
 }
 
+//退出系统12
+void exitSystem()
+{
+    free(systemStartAddr);
+    printf("exitSystem()");
+}
+
+
+// 创建目录 mkdir
+int mkdir(char name[])
+{
+    printf("mkdir()");
+    //为目录表分配空间
+    int fcbBlock = getBlock(1);
+    if(fcbBlock == -1) {
+        printf("get block fail");
+        return -1;
+    }
+    // 添加到当前目录下
+    addToDir(currentDir, name, 1, fcbBlock);
+
+    struct dir* newDir = (struct dir*)getBlockAddr(fcbBlock);
+    newDir->total = 0;
+    char parent[] = "../";
+    // 为该目录创建父目录，这样就能实现cd ../上一级跳转
+    addToDir(newDir, parent, 0, getAddr((char*)currentDir));
+    return 0;
+}
+
+
 void start()
 {
     printf("start()");
