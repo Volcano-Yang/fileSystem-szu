@@ -175,6 +175,31 @@ int createFile(char fileName[], int fileSize, int auth)
     return 0;
 }
 
+// write
+int writeFile(char fileName[], char content[])
+{
+    printf("write()");
+    int index = findFile(fileName);
+    if(index == -1)
+    {
+        printf("Not found\n");
+        return -1;
+    }
+    int FCBBlock = rootdir->items[index].startBlock;
+    struct FCB* fcb = (struct FCB*)getBlockAddr(FCBBlock);
+    if (fcb->protect < 2) {
+        printf("Permission denied \n"); // 没有读写权限
+        return -1;
+    }
+    int fileSize = fcb->fileSize * BLOCKSIZE;
+    char* data = (char*)getBlockAddr(fcb->blockNum);
+    for(int i=0; i<strlen(content) && fcb->dataSize<fileSize; i++, fcb->dataSize++)
+    {
+        *(data+fcb->dataSize) = content[i];
+    }
+    return 0;
+}
+
 void start()
 {
     printf("start()");
