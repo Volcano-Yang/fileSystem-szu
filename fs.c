@@ -62,6 +62,16 @@ char* getBlockAddr(int blockNum)
     return systemStartAddr + blockNum * BLOCKSIZE; //单位为byte
 }
 
+// 释放盘块
+int releaseBlock(int blockNum, int blockSize)
+{
+    printf("releaseBlock()");
+    int endBlock = blockNum + blockSize;
+    for(int i=blockNum; i<endBlock; i++)
+        systemStartAddr[i] = '0';
+    return 0;
+}
+
 void start()
 {
     printf("start()");
