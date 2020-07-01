@@ -120,6 +120,32 @@ int renameFile(char oldName[], char newName[])
     return 0;
 }
 
+// rmdir
+int removeDir(char dirName[])
+{
+    printf("removeDir()");
+    int index = findFile(dirName);
+    if(index == -1)
+    {
+        printf("Not found\n");
+        return -1;
+    }
+
+    struct dirFile *item = &currentDir->items[index];
+    int fcbBlock = item->startBlock;
+    struct dir* temp = (struct dir*)getBlockAddr(fcbBlock);
+    // 递归删掉该目录下的文件
+    for(int i=1; i<temp->total; i++)
+    {
+        renameItem(temp->items[i].fileName);
+    }
+    //释放目录表空间
+    releaseBlock(fcbBlock, 1);
+
+    deleteInParentDir(index);
+    return 0;
+}
+
 
 void start()
 {
