@@ -80,7 +80,7 @@ void exitSystem()
 }
 
 
-// 创建目录 mkdir
+// mkdir
 int mkdir(char name[])
 {
     printf("mkdir()");
@@ -98,6 +98,25 @@ int mkdir(char name[])
     char parent[] = "../";
     // 为该目录创建父目录，这样就能实现cd ../上一级跳转
     addToDir(newDir, parent, 0, getAddr((char*)currentDir));
+    return 0;
+}
+
+// rndir
+int renameFile(char oldName[], char newName[])
+{
+    printf("renameFile()");
+    int index = findFile(oldName);
+    if(index == -1)
+    {
+        printf("Not found\n");
+        return -1;
+    }
+    struct dirFile* item = &currentDir->items[index];
+    int fcbBlock = item->startBlock;
+
+    // 重命名
+    strcpy(item->fileName, newName);
+    
     return 0;
 }
 
