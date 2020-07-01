@@ -43,7 +43,7 @@ int readFile(char fileName[], int length);
 int writeFile(char fileName[], char content[]);
 int renameFile(char oldName[], char newName[]);
 int changeDir(char dirName[]);
-int mkdir(char name[]);
+// int mkdir(char name[]);
 int releaseMemory(int fcbBlock);
 int releaseBlock(int blockNum, int blockSize);
 int removeDir(char dirName[]);

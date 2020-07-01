@@ -7,6 +7,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include<malloc.h>
+#include"disk.h"
+#include"operate.h"
+// #include"fs.h"
+#include<time.h>
 
 void helpInfo(){
     printf("=====================================================================\n");
@@ -28,6 +32,19 @@ void helpInfo(){
     printf("=====================================================================\n\n");
 }
 
+// 展示当前目录
+void ls()
+{
+    int total = currentDir->total;
+    for(int i=0; i<total; i++)
+    {
+        struct dirFile item = currentDir->items[i];
+        if (strcmp(item.fileName, "../") == 0) continue; // 忽略../
+        else if (item.type == 1) printf("\033[37m%s\t\033[0m", item.fileName); // 如果是文件夹，输出蓝色
+        else printf("\033[32m%s\t\033[0m", item.fileName);
+    }
+    printf("\n");
+}
 
 void do_main()
 {
@@ -70,6 +87,7 @@ void do_main()
             printf("执行%s指令\n",command);
         } else if (strcmp(command, "ls") == 0) {
             printf("执行%s指令\n",command);
+            ls();
         } else if (strcmp(command, "cd") == 0) {
             printf("执行%s指令\n",command);
         } else if (strcmp(command, "mkdir") == 0) {
