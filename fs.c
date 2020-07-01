@@ -7,9 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include<malloc.h>
-#include"disk.h"
-#include"operate.h"
-// #include"fs.h"
+#include"fs.h"
 #include<time.h>
 
 void helpInfo(){
@@ -31,6 +29,58 @@ void helpInfo(){
     printf("* exit\t\t无\t\t\t退出系统\n");
     printf("=====================================================================\n\n");
 }
+
+// 分配磁盘块
+int getBlock(int blockSize)
+{
+    printf("getBlock()");
+    int startBlock = 0;
+    int sum = 0;
+    for(int i = 0; i<BLOCKCOUNT; i++)
+    {
+        if(systemStartAddr[i] == '0') // 0为可用盘块
+        {
+            if(sum == 0)
+        startBlock = i;
+            sum++;
+            if(sum == blockSize)
+            {
+        for(int j=startBlock; j<startBlock+blockSize; j++)
+            systemStartAddr[j] = '1'; // 1表示分配盘块
+        return startBlock;
+            }
+        } else sum = 0;
+    }
+    printf("get block fail, because memory is full or hasn't contiguous memory\n");
+    return -1;
+}
+
+// 获得盘块的物理地址
+char* getBlockAddr(int blockNum)
+{
+    printf("getBlockAddr()");
+    return systemStartAddr + blockNum * BLOCKSIZE; //单位为byte
+}
+
+void start()
+{
+    printf("start()");
+    //创建空间
+    systemStartAddr = (char*)malloc(SYSTEMSIZE * sizeof(char));
+    // 初始化盘块的位示图
+    for(int i=0; i<BLOCKCOUNT; i++)
+        systemStartAddr[i] = '0';
+    int size = BLOCKCOUNT * sizeof(char) / BLOCKSIZE;//位示图占用盘块数
+    for(int i=0; i<size; i++) // 从零开始分配
+        systemStartAddr[i] = '1'; //1表示盘块已被使用
+
+    // 分配空间给根目录
+    int startBlock = getBlock(1);
+    rootdir = (struct dir*)getBlockAddr(startBlock);
+    rootdir->total = 0;
+    currentDir = rootdir;
+}
+
 
 // 展示当前目录
 void ls()

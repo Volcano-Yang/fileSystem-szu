@@ -58,9 +58,8 @@ struct dir *currentDir; // 当前目录
 
 void ls();
 
-
+void start();
 void do_main();
 void helpInfo();
 int main();
-
 #endif
