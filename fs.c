@@ -285,12 +285,12 @@ void doMain(){
 			writeTerminalHead();
 			break;
 		case 4: //write
-		//todo: 做到可以不用打开文件就直接写入  现在是write xxx　改为 write a xxx 
+			scanf("%s", name);
+			scanf("%s", contect);
 			if (fd == -1) {
 				printf("Error：\nThe file is not opened\n");
+				goOpen(name);
 			}
-			printf("Please input：");
-			scanf("%s", contect);
 			flag = write(fd, contect, strlen(contect));
 			if (flag == 0) {
 				printf("Successfully write！\n");
@@ -301,9 +301,10 @@ void doMain(){
 			writeTerminalHead();
 			break;
 		case 5: //read
-		//todo: 做到可以不用打开文件就直接读取　现在是read　改为 read a
+			scanf("%s", name);
 			if (fd == -1) {
 				printf("Error：\nThe file is not opened\n");
+				goOpen(name);
 			}
 			else {
 				flag = read(fd, contect);
