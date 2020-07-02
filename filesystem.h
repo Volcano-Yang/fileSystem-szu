@@ -1,23 +1,8 @@
-#include <time.h>
-#ifndef FS_H_INCLUDED
-#define FS_H_INCLUDED
+#include"block.h"
+#ifndef FILESYSTEM_H_INCLUDED
+#define FILESYSTEM_H_INCLUDED
 
-
-// 以下是
-// 关于磁盘的定义
-
-//系统大小100m
-#define MEM_D_SIZE 512*1024*1024
-//盘块大小，按kb划分
-#define DISKSIZE 1024
-#define DISK_NUM 1024
-#define FATSIZE DISK_NUM*sizeof(struct fatitem)
-#define ROOT_DISK_NO FATSIZE/(DISKSIZE+1)
-#define ROOT_DISK_SIZE sizeof(struct direct)
-#define DIR_MAXSIZE 1024
-#define MSD 10
-#define MOFN 5
-#define MAX_WRITE 1024*128
+#define ENV 1 //定义当前环境　１为开发环境　０为生产环境
 
 struct fatitem {
 	int item;
@@ -46,7 +31,7 @@ struct direct *root;
 struct direct *cur_dir;
 struct opentable u_opentable;
 int fd = -1;
-char *bufferdir;
+char *dirPath;
 char *fdisk;
 void initfile();
 void format();
