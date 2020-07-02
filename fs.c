@@ -293,12 +293,13 @@ void doMain(){
 				// printf("Error：该文件没有打开\n");
 			}
 			flag = write(fd, contect, strlen(contect));
-			if (flag == 0) {
-				printf("Success：写入成功！\n");
-			}
-			else {
-				printf("Error：写入失败!\n");
-			}
+			switch(flag){
+                case 0:
+                printf("Success：写入成功！\n");
+                break;
+                default:
+                printf("Error：写入失败!\n");
+            }
 			writeTerminalHead();
 			break;
 		case 5: //read
@@ -321,58 +322,57 @@ void doMain(){
 		case 6://delete
 			scanf("%s", name);
 			flag = delete(name);
-			if (flag == -1) {
-				printf("Error：\nThe file not exit\n");
-			}
-			else if (flag == -2) {
-				printf("Error：\nThe file is opened, please first close it！\n");
-			}
-			else if (flag == -3) {
-				printf("Error：\nThe delete is not file！\n");
-			}
-			else {
-				printf("Successfully delete！\n");
-			}
+			switch(flag){
+                case -1:
+                printf("Error：该文件不存在!\n");
+                break;
+				case -2:
+                printf("Error：该文件已经打开，请先关闭再删除!\n");
+                break;
+				case -3:
+                printf("Error：这是一个目录不是文件，请用rmdir删除目录!\n");
+                break;
+                default:
+                printf("Success：删除成功!\n");
+            }
 			writeTerminalHead();
 			break;
 		case 7: //mkdir
 			scanf("%s", name);
 			flag = mkdir(name);
-			if (flag == -1) {
-				printf("Error：\nThe length of name is too long！\n");
-			}
-			else if (flag == -2) {
-				printf("Error：\nThe direct item is already full！\n");
-			}
-			else if (flag == -3) {
-				printf("Error：\nThe name is already in the direct！\n");
-			}
-			else if (flag == -4) {
-				printf("Error：\nCan not as the name of the direct！\n");
-			}
-			else if (flag == -5) {
-				printf("Error：\nThe disk space is full！\n");
-			}
-			else if (flag == 0) {
-				printf("Succssfully make direct！\n");
-			}
+			switch(flag){
+                case -1:
+                printf("Error：文件名太长!\n");
+                break;
+				case -2:
+				case -5:
+                printf("Error：该目录已经满了!\n");
+                break;
+				case -3:
+				case -4:
+                printf("Error：该项目名已经存在!\n");
+                break;
+                default:
+                printf("Success：创建项目成功!\n");
+            }
 			writeTerminalHead();
 			break;
 		case 8://rmdir
 			scanf("%s", name);
 			flag = rmdir(name);
-			if (flag == -1) {
-				printf("Error：\nThe direct is not exist！\n");
-			}
-			else if (flag == -2) {
-				printf("Error：\nThe direct has son direct, please first remove the direct！\n");
-			}
-			else if (flag == -3) {
-				printf("Error：\nThe remove is not direct！\n");
-			}
-			else if (flag == 0) {
-				printf("Successfully remove direct！\n");
-			}
+			switch(flag){
+                case -1:
+                printf("Error：该目录不存在!\n");
+                break;
+				case -2:
+                printf("Error：该目录里有子目录，请先删除子目录!\n");
+                break;
+				case -3:
+                printf("Error：删除的不是一个目录!\n");
+                break;
+                default:
+                printf("Success：删除成功!\n");
+            }
 			writeTerminalHead();
 			break;
 		case 9://ls
@@ -383,10 +383,7 @@ void doMain(){
 			scanf("%s", name);
 			flag = cd(name);
 			if (flag == -1) {
-				printf("Error：\nThe path no correct！\n");
-			}
-			else if (flag == -2) {
-				printf("Error：\nThe opened is not direct！\n");
+				printf("Error：\n路径不正确！\n");
 			}
 			writeTerminalHead();
 			break;

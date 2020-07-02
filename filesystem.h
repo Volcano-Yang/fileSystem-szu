@@ -1,8 +1,10 @@
+/*该头文件主要定义了文件系统的数据结构，全局变量定义*/
+
 #include"block.h"
 #ifndef FILESYSTEM_H_INCLUDED
 #define FILESYSTEM_H_INCLUDED
 
-#define ENV 1 //定义当前环境　１为开发环境　０为生产环境
+#define ENV 0 //定义当前环境　１为开发环境　０为生产环境
 
 struct fatitem {
 	int item;

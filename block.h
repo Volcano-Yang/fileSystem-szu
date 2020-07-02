@@ -1,3 +1,4 @@
+/*该头文件主要定义文件系统的磁盘各种变量 */
 #ifndef BLOCK_H_INCLUDED
 #define BLOCK_H_INCLUDED
 

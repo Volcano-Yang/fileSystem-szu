@@ -1,3 +1,4 @@
+/*该头文件主要是定义各种指令的操作函数 */
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
