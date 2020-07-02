@@ -37,7 +37,7 @@ void initfile();
 void format();
 void enter();
 void halts();
-int create(char *name);
+int touch(char *name);
 int open(char *name);
 int close(char *name);
 int write(int fd, char *buf, int len);

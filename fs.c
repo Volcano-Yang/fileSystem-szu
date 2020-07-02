@@ -147,31 +147,44 @@ void halts() {
 }
 
 
-int create(char *name) {
+int touch(char *name) {
     console("create");
-	int i, j;
-	if (strlen(name) > 8)	return -1;
-	for (j = 2; j < MSD + 2; j++) {
-		if (!strcmp(cur_dir->directitem[j].name, name))	break;
-	}
-	if (j < MSD + 2)	return -4;
-	for (i = 2; i < MSD + 2; i++) {
-		if (cur_dir->directitem[i].firstdisk == -1)	break;
-	}
-	if (i >= MSD + 2)	return -2;
-	if (u_opentable.cur_size >= MOFN)	return -3;
-	for (j = ROOT_DISK_NO + 1; j < DISK_NUM; j++) {
-		if (fat[j].em_disk == '0')	break;
-	}
-	if (j >= DISK_NUM)	return -5;
-	fat[j].em_disk = '1';
-	strcpy(cur_dir->directitem[i].name, name);
-	cur_dir->directitem[i].firstdisk = j;
-	cur_dir->directitem[i].size = 0;
-	cur_dir->directitem[i].next = j;
-	cur_dir->directitem[i].property = '0';
-	fd = open(name);
-	return 0;
+	if (strlen(name) > 10){
+        return -1;  
+    }
+    else{
+        int i, j;
+        for (j = 2; j < MSD + 2; j++) {
+		if (!strcmp(cur_dir->directitem[j].name, name))	
+            {break;}
+	    }
+
+	    if ((j-2) < MSD){return -4;}
+	    
+        for (i = 2; (i-2) < MSD ; i++) {
+	    	if (cur_dir->directitem[i].firstdisk == -1)	{break;}
+	    }
+	    
+        if ((i-2) >= MSD){return -2;}
+	    
+        if (u_opentable.cur_size >= MOFN){return -3;}
+	    
+        for (j = ROOT_DISK_NO + 1; j < DISK_NUM; j++) {
+	    	if (fat[j].em_disk == '0')	{break;}
+	    }
+	    
+        if (j >= DISK_NUM)	{return -5;}
+	    
+        strcpy(cur_dir->directitem[i].name, name);
+	    fat[j].em_disk = '1';
+        cur_dir->directitem[i].size = 0;
+        cur_dir->directitem[i].firstdisk = j;
+	    cur_dir->directitem[i].property = '0';
+        cur_dir->directitem[i].next = j;
+	    fd = open(name);
+	    return 0;
+    }
+	
 }
 
 
@@ -539,25 +552,28 @@ void doMain(){
             isRun=0;
 		case 1:
 			scanf("%s", name);
-			flag = create(name);
-			if (flag == -1) {
-				printf("Error：\nThe length is too long！\n");
-			}
-			else if (flag == -2) {
-				printf("Error:\nThe direct item is already full！\n");
-			}
-			else if (flag == -3) {
-				printf("Error:\nThe number of openfile is too much！\n");
-			}
-			else if (flag == -4) {
-				printf("Error:\nThe name is already in the direct！\n");
-			}
-			else if (flag == -5) {
-				printf("Error:\nThe disk space is full！\n");
-			}
-			else {
-				printf("Successfully create a file！\n");
-			}
+			int touchStatus = touch(name);
+            switch(touchStatus){
+                case -1:
+                printf("Error：文件名过长,不能超过十位字符！\n");
+                break;
+                case -2:
+                printf("Error:　该文件夹已满！\n");
+                break;
+                case -3:
+                printf("Error:　当前打开的文件太多，请用close+文件名指令关闭！\n");
+                break;
+                case -4:
+                printf("Error:　文件名重复！\n");
+                break;
+                case -5:
+                printf("Error:　磁盘空间已满！\n");
+                case 0:
+                printf("创建文件成功！\n");
+                break;
+                default:
+                printf("Error:　创建文件失败\n");
+            }
 			writeTerminalHead();
 			break;
 		case 2:
