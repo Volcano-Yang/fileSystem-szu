@@ -173,7 +173,36 @@ void exitSystem() {
 
 
 /*文件系统操作部分*/
+// 从operate.h引入
+int goOpen(char *name){
+	fd = open(name);
+	//todo: 改成swith
+	if (fd == -1) {
+		printf("Error：该文件不存在！\n");
+	}
+	else if (fd == -2) {
+		printf("Error：该文件已打开！\n");
+	}
+	else if (fd == -3) {
+		printf("Error：打开文件过多！\n");
+	}
+	else if (fd == -4) {
+		printf("Error：这是一个目录不需要打开\n");
+	}
+	else {
+		printf("Success: 打开成功\n");
+	}
+}
 
+int goClose(char *name){
+	int status = close(name);
+	if (status == -1) {
+		printf("Error：\nThe file is not opened！\n");
+	}
+	else {
+		printf("Successfully closed！\n");
+	}
+}
 
 /*循环控制部分*/
 void doMain(){
@@ -185,7 +214,8 @@ void doMain(){
     int r_size;
     int commandToalNumber =13;
     char *commandArr[13] = {"exit","touch","open","close","write","read","delete","mkdir","rmdir","ls","cd","help","rn"};
-    // 指令对照表
+    
+	// 指令对照表
     // 0"exit"　
     // 1"touch"　
     // 2"open",
@@ -197,6 +227,9 @@ void doMain(){
     // 8"rmdir",
     // 9"ls",
     // 10"cd",
+	// 11"help"
+	// 12"rn"
+
     char name[10]; //定义输入的第二个参数
 	char option1[10];  //定义输入的第三个参数
     
@@ -216,23 +249,17 @@ void doMain(){
 
         /*根据指令和参数执行对应操作*/
         switch (commandNumber) {
-		case 0:
+		case 0: //exit
 			free(contect);
 			exitSystem();
             isRun=0;
             break;
-		case 1:
+		case 1: //touch
 			scanf("%s", name);
 			int touchStatus = touch(name);
             switch(touchStatus){
                 case -1:
                 printf("Error：文件名过长,不能超过十位字符！\n");
-                break;
-                case -2:
-                printf("Error:　该文件夹已满！\n");
-                break;
-                case -3:
-                printf("Error:　当前打开的文件太多，请用close+文件名指令关闭！\n");
                 break;
                 case -4:
                 printf("Error:　文件名重复！\n");
@@ -240,61 +267,41 @@ void doMain(){
                 case -5:
                 printf("Error:　磁盘空间已满！\n");
                 case 0:
-                printf("创建文件成功！\n");
+                printf("Success:创建文件成功！\n");
                 break;
                 default:
                 printf("Error:　创建文件失败\n");
             }
 			writeTerminalHead();
 			break;
-		case 2:
+		case 2: //open
 			scanf("%s", name);
-			fd = open(name);
-			if (fd == -1) {
-				printf("Error：\nThe file not exit！\n");
-			}
-			else if (fd == -2) {
-				printf("Error：\nThe file have already opened！\n");
-			}
-			else if (fd == -3) {
-				printf("Error：\nThe number of file is too much！\n");
-			}
-			else if (fd == -4) {
-				printf("Error：\nIt's a direct, can't open for read or write！\n");
-			}
-			else {
-				printf("Successfully opened！\n");
-			}
+			goOpen(name);
 			writeTerminalHead();
 			break;
-		case 3:
+		case 3: //close
 			scanf("%s", name);
-			flag = close(name);
-			if (flag == -1) {
-				printf("Error：\nThe file is not opened！\n");
-			}
-			else {
-				printf("Successfully closed！\n");
-			}
+			goClose(name);
 			writeTerminalHead();
 			break;
-		case 4:
+		case 4: //write
+		//todo: 做到可以不用打开文件就直接写入  现在是write xxx　改为 write a xxx 
 			if (fd == -1) {
 				printf("Error：\nThe file is not opened\n");
 			}
+			printf("Please input：");
+			scanf("%s", contect);
+			flag = write(fd, contect, strlen(contect));
+			if (flag == 0) {
+				printf("Successfully write！\n");
+			}
 			else {
-				printf("Please input：");
-				scanf("%s", contect);
-				flag = write(fd, contect, strlen(contect));
-				if (flag == 0) {
-					printf("Successfully write！\n");
-				}
-				else {
-					printf("Error：\nThe disk size is not enough!\n");
-				}
-				writeTerminalHead();
-				break;
-		case 5:
+				printf("Error：\nThe disk size is not enough!\n");
+			}
+			writeTerminalHead();
+			break;
+		case 5: //read
+		//todo: 做到可以不用打开文件就直接读取　现在是read　改为 read a
 			if (fd == -1) {
 				printf("Error：\nThe file is not opened\n");
 			}
@@ -309,7 +316,7 @@ void doMain(){
 			}
 			writeTerminalHead();
 			break;
-		case 6:
+		case 6://delete
 			scanf("%s", name);
 			flag = delete(name);
 			if (flag == -1) {
@@ -326,7 +333,7 @@ void doMain(){
 			}
 			writeTerminalHead();
 			break;
-		case 7:
+		case 7: //mkdir
 			scanf("%s", name);
 			flag = mkdir(name);
 			if (flag == -1) {
@@ -349,7 +356,7 @@ void doMain(){
 			}
 			writeTerminalHead();
 			break;
-		case 8:
+		case 8://rmdir
 			scanf("%s", name);
 			flag = rmdir(name);
 			if (flag == -1) {
@@ -366,11 +373,11 @@ void doMain(){
 			}
 			writeTerminalHead();
 			break;
-		case 9:
+		case 9://ls
 			ls();
 			writeTerminalHead();
 			break;
-		case 10:
+		case 10://cd
 			scanf("%s", name);
 			flag = cd(name);
 			if (flag == -1) {
@@ -381,11 +388,11 @@ void doMain(){
 			}
 			writeTerminalHead();
 			break;
-        case 11:
+        case 11://help
             helpinfo();
             writeTerminalHead();
 			break;
-		case 12:
+		case 12://rn
 			scanf("%s", name);
 			scanf("%s", option1);
             rn(name,option1);
@@ -397,7 +404,6 @@ void doMain(){
 			}
 		}
     }
-}
 
 
 int main()
