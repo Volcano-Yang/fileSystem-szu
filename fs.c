@@ -16,17 +16,17 @@ void helpinfo() {
 
     printf("* ls\t\t无\t\t\t查看目录当前文件和文件夹\n");
     printf("* mkdir\t\t目录名\t\t\t在当前目录下创建文件夹\n");
-    printf("* rmdir\t\t目录\t\t\t在当前目录下删除指定目录\n");
-    printf("* rndir\t\t旧文件名 新文件名\t重命名\n");
+    printf("* rmdir\t\t目录名\t\t\t在当前目录下删除指定目录\n");
+    printf("* rn\t\t旧名 新名\t\t重命名文件/目录\n");
     printf("* cd\t\t目录名\t\t\t切换到该目录\n");
 
-    printf("* write\t\t文件名 数据\t\t从末尾开始写数据到该文件\n");
-    printf("* read\t\t文件名 长度\t\t读取该文件\n");
+    printf("* write\t\t文件名\t\t\t从末尾开始写数据到该文件\n");
+    printf("* read\t\t文件名\t\t\t读取该文件\n");
     printf("* touch\t\t文件名 大小\t\t在当前目录下创建指定大小文件\n");
     printf("* delete\t文件名\t\t\t在当前目录下删除指定文件\n");
     
     printf("* exit\t\t无\t\t\t退出系统\n");
-    printf("=====================================================================\n\n");
+    printf("\n=====================================================================\n\n");
 }
 
 void writeTerminalHead() {
@@ -183,8 +183,8 @@ void doMain(){
     int flag;
     int isRun=1;
     int r_size;
-    int commandToalNumber =12;
-    char *commandArr[12] = {"exit","touch","open","close","write","read","delete","mkdir","rmdir","ls","cd","help"};
+    int commandToalNumber =13;
+    char *commandArr[13] = {"exit","touch","open","close","write","read","delete","mkdir","rmdir","ls","cd","help","rn"};
     // 指令对照表
     // 0"exit"　
     // 1"touch"　
@@ -198,6 +198,7 @@ void doMain(){
     // 9"ls",
     // 10"cd",
     char name[10]; //定义输入的第二个参数
+	char option1[10];  //定义输入的第三个参数
     
      while(isRun)
     {
@@ -310,7 +311,7 @@ void doMain(){
 			break;
 		case 6:
 			scanf("%s", name);
-			flag = del(name);
+			flag = delete(name);
 			if (flag == -1) {
 				printf("Error：\nThe file not exit\n");
 			}
@@ -366,7 +367,7 @@ void doMain(){
 			writeTerminalHead();
 			break;
 		case 9:
-			dir();
+			ls();
 			writeTerminalHead();
 			break;
 		case 10:
@@ -384,8 +385,14 @@ void doMain(){
             helpinfo();
             writeTerminalHead();
 			break;
+		case 12:
+			scanf("%s", name);
+			scanf("%s", option1);
+            rn(name,option1);
+            writeTerminalHead();
+			break;
 		default:
-			printf("Error：\nThe command is wrong！\n");
+			printf("Error：\n命令有误\n");
 			writeTerminalHead();
 			}
 		}

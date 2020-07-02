@@ -16,7 +16,7 @@ void console(char info[]){
 }
 
 int touch(char *name) {
-    console("create");
+    console("touch");
 	if (strlen(name) > 10){
         return -1;  
     }
@@ -49,10 +49,27 @@ int touch(char *name) {
         cur_dir->directitem[i].firstdisk = j;
 	    cur_dir->directitem[i].property = '0';
         cur_dir->directitem[i].next = j;
-	    fd = open(name);
+	    // fd = open(name);
 	    return 0;
     }
 	
+}
+
+
+int close(char *name) {
+    console("close");
+	int i;
+	for (i = 0; i < MOFN; i++) {
+		if (!strcmp(openFile.opeitem[i].name, name))
+			break;
+	}
+	if (i >= MOFN)	return -1;
+	strcpy(openFile.opeitem[i].name, "");
+	openFile.opeitem[i].firstdisk = -1;
+	openFile.opeitem[i].size = 0;
+	openFile.cur_size--;
+
+	return 0;
 }
 
 
@@ -83,22 +100,31 @@ int open(char *name) {
 }
 
 
-int close(char *name) {
-    console("close");
-	int i;
-	for (i = 0; i < MOFN; i++) {
-		if (!strcmp(openFile.opeitem[i].name, name))
-			break;
+int read(int fd, char *buf) {
+    console("read");
+	int len = openFile.opeitem[fd].size;
+	char *first;
+	int i, j, item;
+	int ilen1, modlen;
+	item = openFile.opeitem[fd].firstdisk;
+	ilen1 = len / DISKSIZE;
+	modlen = len % DISKSIZE;
+	if (modlen != 0)	ilen1 += 1;
+	first = fdisk + item * DISKSIZE;
+	for (i = 0; i < ilen1; i++) {
+		if (i == ilen1 - 1) {
+			for (j = 0; j < len - i * DISKSIZE; j++)
+				buf[i*DISKSIZE + j] = first[j];
+		}
+		else {
+			for (j = 0; j < len - i * DISKSIZE; j++)
+				buf[i*DISKSIZE + j] = first[j];
+			item = fat[item].item;
+			first = fdisk + item * DISKSIZE;
+		}
 	}
-	if (i >= MOFN)	return -1;
-	strcpy(openFile.opeitem[i].name, "");
-	openFile.opeitem[i].firstdisk = -1;
-	openFile.opeitem[i].size = 0;
-	openFile.cur_size--;
-
 	return 0;
 }
-
 
 int write(int fd, char *buf, int len) {
     console("write");
@@ -158,35 +184,9 @@ int write(int fd, char *buf, int len) {
 }
 
 
-int read(int fd, char *buf) {
-    console("read");
-	int len = openFile.opeitem[fd].size;
-	char *first;
-	int i, j, item;
-	int ilen1, modlen;
-	item = openFile.opeitem[fd].firstdisk;
-	ilen1 = len / DISKSIZE;
-	modlen = len % DISKSIZE;
-	if (modlen != 0)	ilen1 += 1;
-	first = fdisk + item * DISKSIZE;
-	for (i = 0; i < ilen1; i++) {
-		if (i == ilen1 - 1) {
-			for (j = 0; j < len - i * DISKSIZE; j++)
-				buf[i*DISKSIZE + j] = first[j];
-		}
-		else {
-			for (j = 0; j < len - i * DISKSIZE; j++)
-				buf[i*DISKSIZE + j] = first[j];
-			item = fat[item].item;
-			first = fdisk + item * DISKSIZE;
-		}
-	}
-	return 0;
-}
-
-
-int del(char *name) {
-    console("del");
+// 删除文件或者目录
+int delete(char *name) {
+    console("delete");
 	int cur_item, item, temp, i;
 	for (i = 2; i < MSD + 2; i++) {
 		if (!strcmp(cur_dir->directitem[i].name, name))
@@ -219,14 +219,61 @@ int del(char *name) {
 }
 
 
+int rn(char *oldName, char *newName) {
+    console("rn");
+	if (strlen(newName) > 10){
+        return -1;  
+    }
+    else{
+		int j;
+        for (j = 2; (j-2) < MSD ; j++) {
+			if (!strcmp(cur_dir->directitem[j].name, oldName))	
+        	break;
+	    }
+        strcpy(cur_dir->directitem[j].name, newName);
+	    return 0;
+    }
+}
+
+int rmdir(char *name) {
+    console("rmdir");
+	int i, j, item;
+	struct direct *temp_dir;
+	for (i = 2; i < MSD + 2; i++) {
+		if (!strcmp(cur_dir->directitem[i].name, name))
+			break;
+	}
+	if (i >= MSD + 2)	return -1;
+	if (cur_dir->directitem[i].property != '1')
+		return -3;
+
+	temp_dir = (struct direct *)(fdisk + cur_dir->directitem[i].next*DISKSIZE);
+	for (j = 2; j < MSD + 2; j++) {
+		if (temp_dir->directitem[j].next != -1)
+			break;
+	}
+	if (j < MSD + 2)	return -2;
+
+	item = cur_dir->directitem[i].firstdisk;
+	fat[item].em_disk = '0';
+
+	cur_dir->directitem[i].sign = 0;
+	cur_dir->directitem[i].firstdisk = -1;
+	strcpy(cur_dir->directitem[i].name, name);
+	cur_dir->directitem[i].next = -1;
+	cur_dir->directitem[i].property = '0';
+	cur_dir->directitem[i].size = 0;
+
+	return 0;
+
+}
 
 int mkdir(char *name) {
     console("mkdir");
 	int i, j;
 	struct direct *cur_mkdir;
-	if (!strcmp(name, "."))	return -4;
-	if (!strcmp(name, ".."))	return -4;
-	if (strlen(name) > 8)	return -1;
+	if (!strcmp(name, ".")||!strcmp(name, "..")) return -4;
+	if (strlen(name) > 10)	return -1;
 	for (i = 2; i < MSD + 2; i++) {
 		if (cur_dir->directitem[i].firstdisk == -1)
 			break;
@@ -278,43 +325,8 @@ int mkdir(char *name) {
 
 
 
-int rmdir(char *name) {
-    console("rmdir");
-	int i, j, item;
-	struct direct *temp_dir;
-	for (i = 2; i < MSD + 2; i++) {
-		if (!strcmp(cur_dir->directitem[i].name, name))
-			break;
-	}
-	if (i >= MSD + 2)	return -1;
-	if (cur_dir->directitem[i].property != '1')
-		return -3;
-
-	temp_dir = (struct direct *)(fdisk + cur_dir->directitem[i].next*DISKSIZE);
-	for (j = 2; j < MSD + 2; j++) {
-		if (temp_dir->directitem[j].next != -1)
-			break;
-	}
-	if (j < MSD + 2)	return -2;
-
-	item = cur_dir->directitem[i].firstdisk;
-	fat[item].em_disk = '0';
-
-	cur_dir->directitem[i].sign = 0;
-	cur_dir->directitem[i].firstdisk = -1;
-	strcpy(cur_dir->directitem[i].name, name);
-	cur_dir->directitem[i].next = -1;
-	cur_dir->directitem[i].property = '0';
-	cur_dir->directitem[i].size = 0;
-
-	return 0;
-
-}
-
-
-
-void dir() {
-    console("dir");
+void ls() {
+    console("ls");
 	int i;
 	for (i = 2; i < MSD + 2; i++) {
 		if (cur_dir->directitem[i].firstdisk != -1) {

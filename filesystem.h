@@ -30,7 +30,7 @@ struct fatitem *fat;
 struct direct *root;
 struct direct *cur_dir;
 struct opentable openFile;
-int fd = -1;
+int fd = -1; //当前打开文件的下标
 char *dirPath;
 char *fdisk;
 void initfile();
