@@ -37,6 +37,7 @@ void initfile();
 void format();
 void judge();
 void exitSystem();
+void console(char info[]);
 int touch(char *name);
 int open(char *name);
 int close(char *name);
