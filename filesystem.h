@@ -29,14 +29,14 @@ struct opentable {
 struct fatitem *fat;
 struct direct *root;
 struct direct *cur_dir;
-struct opentable u_opentable;
+struct opentable openFile;
 int fd = -1;
 char *dirPath;
 char *fdisk;
 void initfile();
 void format();
-void enter();
-void halts();
+void judge();
+void exitSystem();
 int touch(char *name);
 int open(char *name);
 int close(char *name);
@@ -49,6 +49,7 @@ void dir();
 int cd(char *name);
 void print();
 void show();
+void doMain();
 int main();
 
 #endif

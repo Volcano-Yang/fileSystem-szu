@@ -48,6 +48,39 @@ void initfile() {
 	format();
     printf("成功创建了一个100M的block.dat用来模拟文件系统\n");
 }
+
+void judge() {
+    console("enter");
+	
+	fdisk = (char*)malloc(MEM_D_SIZE * sizeof(char));
+	FILE *fp;
+
+    if ((fp = fopen(DISKNAME, "rb")) == NULL) {
+		printf("Error:\n不可以打开文件\n");
+		return;
+	}
+
+	else if (!fread(fdisk, MEM_D_SIZE, 1, fp)) {
+		printf("Error:\n不可以读取文件\n");
+		exit(0);
+	}
+
+    else{
+        fat = (struct fatitem*)(fdisk + DISKSIZE);
+	    root = (struct direct*)(fdisk + DISKSIZE + FATSIZE);
+	    for (int i = 0; i < MOFN; i++) {
+	    	strcpy(openFile.opeitem[i].name, "");
+	    	openFile.opeitem[i].size = 0;
+	    	openFile.opeitem[i].firstdisk = -1;
+	    }
+	    cur_dir = root;
+	    dirPath = (char *)malloc(DIR_MAXSIZE * sizeof(char));
+	    openFile.cur_size = 0;
+        strcpy(dirPath, "Root");
+    }
+	
+}
+
 void format() {
     console("format");
 	int i;
@@ -102,48 +135,45 @@ void format() {
 }
 
 
-void enter() {
-    console("enter");
-	int i;
-	FILE *fp;
-	fdisk = (char*)malloc(MEM_D_SIZE * sizeof(char));
+void start(){
+    console("start");
+    FILE *fp;
+    char ch;
 	if ((fp = fopen(DISKNAME, "rb")) == NULL) {
-		printf("Error:\nCannot open file\n");
-		return;
+		printf("You have not format, do you want format?(y/s)");
+		scanf("%c", &ch);
+		if (ch == 'y') {
+			initfile();
+			printf("Succssfully format!\n");
+		}
+		else {
+			return;
+		}
 	}
-	if (!fread(fdisk, MEM_D_SIZE, 1, fp)) {
-		printf("Error:\nCannot read file\n");
-		exit(0);
-	}
-	fat = (struct fatitem*)(fdisk + DISKSIZE);
-	root = (struct direct*)(fdisk + DISKSIZE + FATSIZE);
-	for (i = 0; i < MOFN; i++) {
-		strcpy(u_opentable.opeitem[i].name, "");
-		u_opentable.opeitem[i].firstdisk = -1;
-		u_opentable.opeitem[i].size = 0;
-	}
-	u_opentable.cur_size = 0;
-	cur_dir = root;
-	dirPath = (char *)malloc(DIR_MAXSIZE * sizeof(char));
-	strcpy(dirPath, "Root");
+	judge();
+	helpinfo();
+	writeTerminalHead();
+    doMain();
 }
 
+/* 释放空间部分 */
 
-void halts() {
-    console("halts");
+void exitSystem() {
+    console("exitSystem");
 	int i;
 	FILE *fp;
 	if ((fp = fopen(DISKNAME, "wb")) == NULL) {
-		printf("Error:\nCannot open file\n");
+		printf("Error:\n不可以打开文件！\n");
 		return;
 	}
 	if (!fwrite(fdisk, MEM_D_SIZE, 1, fp)) {
-		printf("Error:\nFile write error!\n");
+		printf("Error:\n不可以读取文件!\n");
 	}
+
 	fclose(fp);
-	free(fdisk);
 	free(dirPath);
-	return;
+	free(fdisk);
+    return;
 }
 
 
@@ -167,7 +197,7 @@ int touch(char *name) {
 	    
         if ((i-2) >= MSD){return -2;}
 	    
-        if (u_opentable.cur_size >= MOFN){return -3;}
+        if (openFile.cur_size >= MOFN){return -3;}
 	    
         for (j = ROOT_DISK_NO + 1; j < DISK_NUM; j++) {
 	    	if (fat[j].em_disk == '0')	{break;}
@@ -197,20 +227,20 @@ int open(char *name) {
 	if (i >= MSD + 2)	return -1;
 	if (cur_dir->directitem[i].property == '1') return -4;
 	for (j = 0; j < MOFN; j++) {
-		if (!strcmp(u_opentable.opeitem[j].name, name))
+		if (!strcmp(openFile.opeitem[j].name, name))
 			break;
 	}
 	if (j < MOFN)	return -2;
-	if (u_opentable.cur_size >= MOFN)	return -3;
+	if (openFile.cur_size >= MOFN)	return -3;
 
 	for (j = 0; j < MOFN; j++) {
-		if (u_opentable.opeitem[j].firstdisk == -1)
+		if (openFile.opeitem[j].firstdisk == -1)
 			break;
 	}
-	u_opentable.opeitem[j].firstdisk = cur_dir->directitem[i].firstdisk;
-	strcpy(u_opentable.opeitem[j].name, name);
-	u_opentable.opeitem[j].size = cur_dir->directitem[i].size;
-	u_opentable.cur_size++;
+	openFile.opeitem[j].firstdisk = cur_dir->directitem[i].firstdisk;
+	strcpy(openFile.opeitem[j].name, name);
+	openFile.opeitem[j].size = cur_dir->directitem[i].size;
+	openFile.cur_size++;
 	return j;
 }
 
@@ -219,14 +249,14 @@ int close(char *name) {
     console("close");
 	int i;
 	for (i = 0; i < MOFN; i++) {
-		if (!strcmp(u_opentable.opeitem[i].name, name))
+		if (!strcmp(openFile.opeitem[i].name, name))
 			break;
 	}
 	if (i >= MOFN)	return -1;
-	strcpy(u_opentable.opeitem[i].name, "");
-	u_opentable.opeitem[i].firstdisk = -1;
-	u_opentable.opeitem[i].size = 0;
-	u_opentable.cur_size--;
+	strcpy(openFile.opeitem[i].name, "");
+	openFile.opeitem[i].firstdisk = -1;
+	openFile.opeitem[i].size = 0;
+	openFile.cur_size--;
 
 	return 0;
 }
@@ -243,7 +273,7 @@ int write(int fd, char *buf, int len) {
 		if (buf[i] == '$')	buf[i] = Space;
 		else if (buf[i] == '#') buf[i] = Endter;
 	}
-	item = u_opentable.opeitem[fd].firstdisk;
+	item = openFile.opeitem[fd].firstdisk;
 	for (i = 2; i < MSD + 2; i++) {
 		if (cur_dir->directitem[i].firstdisk == item)	break;
 	}
@@ -251,17 +281,17 @@ int write(int fd, char *buf, int len) {
 	while (fat[item].item != -1) {
 		item = fat[item].item;
 	}
-	first = fdisk + item * DISKSIZE + u_opentable.opeitem[fd].size%DISKSIZE;
-	if (DISKSIZE - u_opentable.opeitem[fd].size%DISKSIZE > len) {
+	first = fdisk + item * DISKSIZE + openFile.opeitem[fd].size%DISKSIZE;
+	if (DISKSIZE - openFile.opeitem[fd].size%DISKSIZE > len) {
 		strcpy(first, buf);
-		u_opentable.opeitem[fd].size = u_opentable.opeitem[fd].size + len;
+		openFile.opeitem[fd].size = openFile.opeitem[fd].size + len;
 		cur_dir->directitem[temp].size = cur_dir->directitem[temp].size + len;
 	}
 	else {
-		for (i = 0; i < (DISKSIZE - u_opentable.opeitem[fd].size%DISKSIZE); i++) {
+		for (i = 0; i < (DISKSIZE - openFile.opeitem[fd].size%DISKSIZE); i++) {
 			first[i] = buf[i];
 		}
-		ilen1 = len - (DISKSIZE - u_opentable.opeitem[fd].size%DISKSIZE);
+		ilen1 = len - (DISKSIZE - openFile.opeitem[fd].size%DISKSIZE);
 		ilen2 = ilen1 / DISKSIZE;
 		modlen = ilen1 % DISKSIZE;
 		if (modlen > 0)	ilen2 += 1;
@@ -272,7 +302,7 @@ int write(int fd, char *buf, int len) {
 			if (i >= DISK_NUM)	return -1;
 			first = fdisk + i * DISKSIZE;
 			if (j == ilen2 - 1) {
-				for (k = 0; k < len - (DISKSIZE - u_opentable.opeitem[fd].size%DISKSIZE) - j * DISKSIZE; k++)
+				for (k = 0; k < len - (DISKSIZE - openFile.opeitem[fd].size%DISKSIZE) - j * DISKSIZE; k++)
 					first[k] = buf[k];
 			}
 			else {
@@ -283,7 +313,7 @@ int write(int fd, char *buf, int len) {
 			fat[i].em_disk = '1';
 			fat[i].item = -1;
 		}
-		u_opentable.opeitem[fd].size = u_opentable.opeitem[fd].size + len;
+		openFile.opeitem[fd].size = openFile.opeitem[fd].size + len;
 		cur_dir->directitem[temp].size = cur_dir->directitem[temp].size + len;
 	}
 	return 0;
@@ -292,11 +322,11 @@ int write(int fd, char *buf, int len) {
 
 int read(int fd, char *buf) {
     console("read");
-	int len = u_opentable.opeitem[fd].size;
+	int len = openFile.opeitem[fd].size;
 	char *first;
 	int i, j, item;
 	int ilen1, modlen;
-	item = u_opentable.opeitem[fd].firstdisk;
+	item = openFile.opeitem[fd].firstdisk;
 	ilen1 = len / DISKSIZE;
 	modlen = len % DISKSIZE;
 	if (modlen != 0)	ilen1 += 1;
@@ -330,7 +360,7 @@ int del(char *name) {
 		return -3;
 
 	for (i = 0; i < MOFN; i++) {
-		if (!strcmp(u_opentable.opeitem[i].name, name))
+		if (!strcmp(openFile.opeitem[i].name, name))
 			return -2;
 	}
 	item = cur_dir->directitem[cur_item].firstdisk;
@@ -342,7 +372,7 @@ int del(char *name) {
 	}
 	cur_dir->directitem[cur_item].sign = 0;
 	cur_dir->directitem[cur_item].firstdisk = -1;
-	strcpy(u_opentable.opeitem[cur_item].name, "");
+	strcpy(openFile.opeitem[cur_item].name, "");
 	cur_dir->directitem[cur_item].next = -1;
 	cur_dir->directitem[cur_item].property = '0';
 	cur_dir->directitem[cur_item].size = 0;
@@ -548,8 +578,9 @@ void doMain(){
         switch (commandNumber) {
 		case 0:
 			free(contect);
-			halts();
+			exitSystem();
             isRun=0;
+            break;
 		case 1:
 			scanf("%s", name);
 			int touchStatus = touch(name);
@@ -630,7 +661,7 @@ void doMain(){
 			else {
 				flag = read(fd, contect);
 				if (flag == 0) {
-					for (int i = 0; i < u_opentable.opeitem[fd].size; i++) {
+					for (int i = 0; i < openFile.opeitem[fd].size; i++) {
 						printf("%c", contect[i]);
 					}
 					printf("\n");
@@ -722,29 +753,6 @@ void doMain(){
     }
 }
 
-
-
-
-void start(){
-    console("start");
-    FILE *fp;
-    char ch;
-	if ((fp = fopen(DISKNAME, "rb")) == NULL) {
-		printf("You have not format, do you want format?(y/s)");
-		scanf("%c", &ch);
-		if (ch == 'y') {
-			initfile();
-			printf("Succssfully format!\n");
-		}
-		else {
-			return;
-		}
-	}
-	enter();
-	helpinfo();
-	writeTerminalHead();
-    doMain();
-}
 
 int main()
 {
