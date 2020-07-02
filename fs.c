@@ -173,34 +173,35 @@ void exitSystem() {
 
 
 /*文件系统操作部分*/
-// 从operate.h引入
+// 第一层底层原理的指令操作处理函数从operate.h引入
+
+//　下面的goOpen和goClose抽离支出是因为这两个判断逻辑用的多
 int goOpen(char *name){
 	fd = open(name);
-	//todo: 改成swith
-	if (fd == -1) {
-		printf("Error：该文件不存在！\n");
-	}
-	else if (fd == -2) {
-		printf("Error：该文件已打开！\n");
-	}
-	else if (fd == -3) {
-		printf("Error：打开文件过多！\n");
-	}
-	else if (fd == -4) {
-		printf("Error：这是一个目录不需要打开\n");
-	}
-	else {
-		printf("Success: 打开成功\n");
-	}
+	switch(fd){
+    	case -1:
+    	printf("Error：该文件不存在！\n");
+    	break;
+    	case -2:
+    	printf("Error：该文件已打开！\n");
+    	break;
+    	case -3:
+    	printf("Error：打开文件过多！\n");
+    	case -4:
+    	printf("Error：这是一个目录不需要打开\n");
+    	break;
+    	default:
+    	printf("Success: 打开成功\n");
+    }
 }
 
 int goClose(char *name){
 	int status = close(name);
 	if (status == -1) {
-		printf("Error：\nThe file is not opened！\n");
+		printf("Error：该文件没有打开！\n");
 	}
 	else {
-		printf("Successfully closed！\n");
+		printf("Success: 关闭成功\n\n");
 	}
 }
 
@@ -288,23 +289,23 @@ void doMain(){
 			scanf("%s", name);
 			scanf("%s", contect);
 			if (fd == -1) {
-				printf("Error：\nThe file is not opened\n");
 				goOpen(name);
+				// printf("Error：该文件没有打开\n");
 			}
 			flag = write(fd, contect, strlen(contect));
 			if (flag == 0) {
-				printf("Successfully write！\n");
+				printf("Success：写入成功！\n");
 			}
 			else {
-				printf("Error：\nThe disk size is not enough!\n");
+				printf("Error：写入失败!\n");
 			}
 			writeTerminalHead();
 			break;
 		case 5: //read
 			scanf("%s", name);
 			if (fd == -1) {
-				printf("Error：\nThe file is not opened\n");
 				goOpen(name);
+				// printf("Error：该文件没有打开\n");
 			}
 			else {
 				flag = read(fd, contect);
@@ -397,10 +398,11 @@ void doMain(){
 			scanf("%s", name);
 			scanf("%s", option1);
             rn(name,option1);
+			printf("Success：修改命名成功！\n");
             writeTerminalHead();
 			break;
 		default:
-			printf("Error：\n命令有误\n");
+			printf("Error：命令有误\n");
 			writeTerminalHead();
 			}
 		}
