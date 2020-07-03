@@ -11,7 +11,7 @@
 //根目录起始盘号
 #define ROOT_DISK_NO FATSIZE/(DISKSIZE+1)
 //根目录大小
-#define ROOT_DISK_SIZE sizeof(struct direct)
+#define ROOT_DISK_SIZE sizeof(struct dirOrFile)
 //FAT表大小
 #define FATSIZE DISK_NUM*sizeof(struct fatitem)
 #define DIR_MAXSIZE 1024

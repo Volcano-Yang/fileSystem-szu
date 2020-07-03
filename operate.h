@@ -25,14 +25,14 @@ int touch(char *name) {
     else{
         int i, j;
         for (j = 2; j < MSD + 2; j++) {
-		if (!strcmp(cur_dir->directitem[j].name, name))	
+		if (!strcmp(nowDir->dirOrFileitem[j].name, name))	
             {break;}
 	    }
 
 	    if ((j-2) < MSD){return -4;}
 	    
         for (i = 2; (i-2) < MSD ; i++) {
-	    	if (cur_dir->directitem[i].firstdisk == -1)	{break;}
+	    	if (nowDir->dirOrFileitem[i].firstdisk == -1)	{break;}
 	    }
 	    
         if ((i-2) >= MSD){return -2;}
@@ -45,12 +45,12 @@ int touch(char *name) {
 	    
         if (j >= DISK_NUM)	{return -5;}
 	    
-        strcpy(cur_dir->directitem[i].name, name);
+        strcpy(nowDir->dirOrFileitem[i].name, name);
 	    fat[j].em_disk = '1';
-        cur_dir->directitem[i].size = 0;
-        cur_dir->directitem[i].firstdisk = j;
-	    cur_dir->directitem[i].property = '0';
-        cur_dir->directitem[i].next = j;
+        nowDir->dirOrFileitem[i].size = 0;
+        nowDir->dirOrFileitem[i].firstdisk = j;
+	    nowDir->dirOrFileitem[i].property = '0';
+        nowDir->dirOrFileitem[i].next = j;
 	    // fd = open(name);
 	    return 0;
     }
@@ -79,10 +79,10 @@ int open(char *name) {
     console("open");
 	int i, j;
 	for (i = 2; i < MSD + 2; i++) {
-		if (!strcmp(cur_dir->directitem[i].name, name))	break;
+		if (!strcmp(nowDir->dirOrFileitem[i].name, name))	break;
 	}
 	if (i >= MSD + 2)	return -1;
-	if (cur_dir->directitem[i].property == '1') return -4;
+	if (nowDir->dirOrFileitem[i].property == '1') return -4;
 	for (j = 0; j < MOFN; j++) {
 		if (!strcmp(openFile.opeitem[j].name, name))
 			break;
@@ -94,9 +94,9 @@ int open(char *name) {
 		if (openFile.opeitem[j].firstdisk == -1)
 			break;
 	}
-	openFile.opeitem[j].firstdisk = cur_dir->directitem[i].firstdisk;
+	openFile.opeitem[j].firstdisk = nowDir->dirOrFileitem[i].firstdisk;
 	strcpy(openFile.opeitem[j].name, name);
-	openFile.opeitem[j].size = cur_dir->directitem[i].size;
+	openFile.opeitem[j].size = nowDir->dirOrFileitem[i].size;
 	openFile.cur_size++;
 	return j;
 }
@@ -141,7 +141,7 @@ int write(int fd, char *buf, int len) {
 	}
 	item = openFile.opeitem[fd].firstdisk;
 	for (i = 2; i < MSD + 2; i++) {
-		if (cur_dir->directitem[i].firstdisk == item)	break;
+		if (nowDir->dirOrFileitem[i].firstdisk == item)	break;
 	}
 	temp = i;
 	while (fat[item].item != -1) {
@@ -151,7 +151,7 @@ int write(int fd, char *buf, int len) {
 	if (DISKSIZE - openFile.opeitem[fd].size%DISKSIZE > len) {
 		strcpy(first, buf);
 		openFile.opeitem[fd].size = openFile.opeitem[fd].size + len;
-		cur_dir->directitem[temp].size = cur_dir->directitem[temp].size + len;
+		nowDir->dirOrFileitem[temp].size = nowDir->dirOrFileitem[temp].size + len;
 	}
 	else {
 		for (i = 0; i < (DISKSIZE - openFile.opeitem[fd].size%DISKSIZE); i++) {
@@ -180,7 +180,7 @@ int write(int fd, char *buf, int len) {
 			fat[i].item = -1;
 		}
 		openFile.opeitem[fd].size = openFile.opeitem[fd].size + len;
-		cur_dir->directitem[temp].size = cur_dir->directitem[temp].size + len;
+		nowDir->dirOrFileitem[temp].size = nowDir->dirOrFileitem[temp].size + len;
 	}
 	return 0;
 }
@@ -191,31 +191,31 @@ int delete(char *name) {
     console("delete");
 	int cur_item, item, temp, i;
 	for (i = 2; i < MSD + 2; i++) {
-		if (!strcmp(cur_dir->directitem[i].name, name))
+		if (!strcmp(nowDir->dirOrFileitem[i].name, name))
 			break;
 	}
 	cur_item = i;
 	if (i >= MSD + 2)	return-1;
-	if (cur_dir->directitem[cur_item].property != '0')	
+	if (nowDir->dirOrFileitem[cur_item].property != '0')	
 		return -3;
 
 	for (i = 0; i < MOFN; i++) {
 		if (!strcmp(openFile.opeitem[i].name, name))
 			return -2;
 	}
-	item = cur_dir->directitem[cur_item].firstdisk;
+	item = nowDir->dirOrFileitem[cur_item].firstdisk;
 	while (item != -1) {
 		temp = fat[item].item;
 		fat[item].item = -1;
 		fat[item].em_disk = '0';
 		item = temp;
 	}
-	cur_dir->directitem[cur_item].sign = 0;
-	cur_dir->directitem[cur_item].firstdisk = -1;
+	nowDir->dirOrFileitem[cur_item].sign = 0;
+	nowDir->dirOrFileitem[cur_item].firstdisk = -1;
 	strcpy(openFile.opeitem[cur_item].name, "");
-	cur_dir->directitem[cur_item].next = -1;
-	cur_dir->directitem[cur_item].property = '0';
-	cur_dir->directitem[cur_item].size = 0;
+	nowDir->dirOrFileitem[cur_item].next = -1;
+	nowDir->dirOrFileitem[cur_item].property = '0';
+	nowDir->dirOrFileitem[cur_item].size = 0;
 
 	return 0;
 }
@@ -229,10 +229,10 @@ int rn(char *oldName, char *newName) {
     else{
 		int j;
         for (j = 2; (j-2) < MSD ; j++) {
-			if (!strcmp(cur_dir->directitem[j].name, oldName))	
+			if (!strcmp(nowDir->dirOrFileitem[j].name, oldName))	
         	break;
 	    }
-        strcpy(cur_dir->directitem[j].name, newName);
+        strcpy(nowDir->dirOrFileitem[j].name, newName);
 	    return 0;
     }
 }
@@ -240,31 +240,31 @@ int rn(char *oldName, char *newName) {
 int rmdir(char *name) {
     console("rmdir");
 	int i, j, item;
-	struct direct *temp_dir;
+	struct dirOrFile *temp_dir;
 	for (i = 2; i < MSD + 2; i++) {
-		if (!strcmp(cur_dir->directitem[i].name, name))
+		if (!strcmp(nowDir->dirOrFileitem[i].name, name))
 			break;
 	}
 	if (i >= MSD + 2)	return -1;
-	if (cur_dir->directitem[i].property != '1')
+	if (nowDir->dirOrFileitem[i].property != '1')
 		return -3;
 
-	temp_dir = (struct direct *)(fdisk + cur_dir->directitem[i].next*DISKSIZE);
+	temp_dir = (struct dirOrFile *)(fdisk + nowDir->dirOrFileitem[i].next*DISKSIZE);
 	for (j = 2; j < MSD + 2; j++) {
-		if (temp_dir->directitem[j].next != -1)
+		if (temp_dir->dirOrFileitem[j].next != -1)
 			break;
 	}
 	if (j < MSD + 2)	return -2;
 
-	item = cur_dir->directitem[i].firstdisk;
+	item = nowDir->dirOrFileitem[i].firstdisk;
 	fat[item].em_disk = '0';
 
-	cur_dir->directitem[i].sign = 0;
-	cur_dir->directitem[i].firstdisk = -1;
-	strcpy(cur_dir->directitem[i].name, name);
-	cur_dir->directitem[i].next = -1;
-	cur_dir->directitem[i].property = '0';
-	cur_dir->directitem[i].size = 0;
+	nowDir->dirOrFileitem[i].sign = 0;
+	nowDir->dirOrFileitem[i].firstdisk = -1;
+	strcpy(nowDir->dirOrFileitem[i].name, name);
+	nowDir->dirOrFileitem[i].next = -1;
+	nowDir->dirOrFileitem[i].property = '0';
+	nowDir->dirOrFileitem[i].size = 0;
 
 	return 0;
 
@@ -273,16 +273,16 @@ int rmdir(char *name) {
 int mkdir(char *name) {
     console("mkdir");
 	int i, j;
-	struct direct *cur_mkdir;
+	struct dirOrFile *cur_mkdir;
 	if (!strcmp(name, ".")||!strcmp(name, "..")) return -4;
 	if (strlen(name) > 10)	return -1;
 	for (i = 2; i < MSD + 2; i++) {
-		if (cur_dir->directitem[i].firstdisk == -1)
+		if (nowDir->dirOrFileitem[i].firstdisk == -1)
 			break;
 	}
 	if (i >= MSD + 2)	return -2;
 	for (j = 2; j < MSD + 2; j++) {
-		if (!strcmp(cur_dir->directitem[j].name, name))
+		if (!strcmp(nowDir->dirOrFileitem[j].name, name))
 			break;
 	}
 	if (j < MSD + 2)	return -3;
@@ -292,34 +292,34 @@ int mkdir(char *name) {
 	}
 	if (j >= DISK_NUM)	return -5;
 	fat[j].em_disk = '1';
-	strcpy(cur_dir->directitem[i].name, name);
-	cur_dir->directitem[i].firstdisk = j;
-	cur_dir->directitem[i].size = ROOT_DISK_SIZE;
-	cur_dir->directitem[i].next = j;
-	cur_dir->directitem[i].property = '1';
+	strcpy(nowDir->dirOrFileitem[i].name, name);
+	nowDir->dirOrFileitem[i].firstdisk = j;
+	nowDir->dirOrFileitem[i].size = ROOT_DISK_SIZE;
+	nowDir->dirOrFileitem[i].next = j;
+	nowDir->dirOrFileitem[i].property = '1';
 
-	cur_mkdir = (struct direct *)(fdisk + cur_dir->directitem[i].firstdisk*DISKSIZE);
+	cur_mkdir = (struct dirOrFile *)(fdisk + nowDir->dirOrFileitem[i].firstdisk*DISKSIZE);
 
-	cur_mkdir->directitem[0].sign = 0;
-	cur_mkdir->directitem[0].firstdisk = cur_dir->directitem[i].firstdisk;
-	strcpy(cur_mkdir->directitem[0].name, ".");
-	cur_mkdir->directitem[0].next = cur_mkdir->directitem[0].firstdisk;
-	cur_mkdir->directitem[0].property = '1';
-	cur_mkdir->directitem[0].size = ROOT_DISK_SIZE;
+	cur_mkdir->dirOrFileitem[0].sign = 0;
+	cur_mkdir->dirOrFileitem[0].firstdisk = nowDir->dirOrFileitem[i].firstdisk;
+	strcpy(cur_mkdir->dirOrFileitem[0].name, ".");
+	cur_mkdir->dirOrFileitem[0].next = cur_mkdir->dirOrFileitem[0].firstdisk;
+	cur_mkdir->dirOrFileitem[0].property = '1';
+	cur_mkdir->dirOrFileitem[0].size = ROOT_DISK_SIZE;
 
-	cur_mkdir->directitem[1].sign = cur_dir->directitem[0].sign;
-	cur_mkdir->directitem[1].firstdisk = cur_dir->directitem[0].firstdisk;
-	strcpy(cur_mkdir->directitem[1].name, "..");
-	cur_mkdir->directitem[1].next = cur_mkdir->directitem[1].firstdisk;
-	cur_mkdir->directitem[1].property = '1';
-	cur_mkdir->directitem[1].size = ROOT_DISK_SIZE;
+	cur_mkdir->dirOrFileitem[1].sign = nowDir->dirOrFileitem[0].sign;
+	cur_mkdir->dirOrFileitem[1].firstdisk = nowDir->dirOrFileitem[0].firstdisk;
+	strcpy(cur_mkdir->dirOrFileitem[1].name, "..");
+	cur_mkdir->dirOrFileitem[1].next = cur_mkdir->dirOrFileitem[1].firstdisk;
+	cur_mkdir->dirOrFileitem[1].property = '1';
+	cur_mkdir->dirOrFileitem[1].size = ROOT_DISK_SIZE;
 	for (i = 2; i < MSD + 2; i++) {
-		cur_mkdir->directitem[i].sign = 0;
-		cur_mkdir->directitem[i].firstdisk = -1;
-		strcpy(cur_mkdir->directitem[i].name, "");
-		cur_mkdir->directitem[i].next = -1;
-		cur_mkdir->directitem[i].property = '0';
-		cur_mkdir->directitem[i].size = 0;
+		cur_mkdir->dirOrFileitem[i].sign = 0;
+		cur_mkdir->dirOrFileitem[i].firstdisk = -1;
+		strcpy(cur_mkdir->dirOrFileitem[i].name, "");
+		cur_mkdir->dirOrFileitem[i].next = -1;
+		cur_mkdir->dirOrFileitem[i].property = '0';
+		cur_mkdir->dirOrFileitem[i].size = 0;
 	}
 	return 0;
 
@@ -331,10 +331,10 @@ void ls() {
     console("ls");
 	int i;
 	for (i = 2; i < MSD + 2; i++) {
-		if (cur_dir->directitem[i].firstdisk != -1) {
-			printf("%s\t", cur_dir->directitem[i].name);
-			if (cur_dir->directitem[i].property == '0')
-				printf("%d\t\t\n", cur_dir->directitem[i].size);
+		if (nowDir->dirOrFileitem[i].firstdisk != -1) {
+			printf("%s\t", nowDir->dirOrFileitem[i].name);
+			if (nowDir->dirOrFileitem[i].property == '0')
+				printf("%d\t\t\n", nowDir->dirOrFileitem[i].size);
 			else
 				printf("\t<目录>\t\n");
 		}
@@ -348,11 +348,11 @@ int cd(char *name) {
 	int i, j, item;
 	char *str;
 	char *temp, *point, *point1;
-	struct direct *temp_dir;
-	temp_dir = cur_dir;
+	struct dirOrFile *temp_dir;
+	temp_dir = nowDir;
 	str = name;
 	if (!strcmp("\\", name)) {
-		cur_dir = root;
+		nowDir = root;
 		strcpy(dirPath, "Root:");
 		return 0;
 	}
@@ -362,16 +362,16 @@ int cd(char *name) {
 		temp[i] = str[i];
 	temp[i] = '\0';
 	for (j = 0; j < MSD + 2; j++) {
-		if (!strcmp(temp_dir->directitem[j].name, temp))
+		if (!strcmp(temp_dir->dirOrFileitem[j].name, temp))
 			break;
 	}
 	free(temp);
 
 	if (j >= MSD + 2)	return -1;
-	item = temp_dir->directitem[j].firstdisk;
-	temp_dir = (struct direct *)(fdisk + item * DISKSIZE);
+	item = temp_dir->dirOrFileitem[j].firstdisk;
+	temp_dir = (struct dirOrFile *)(fdisk + item * DISKSIZE);
 	if (!strcmp("..", name)) {
-		if (cur_dir->directitem[j - 1].sign != -1) {
+		if (nowDir->dirOrFileitem[j - 1].sign != -1) {
 			point = strchr(dirPath, '\\');
 			while (point != NULL) {
 				point1 = point + 1;
@@ -385,7 +385,7 @@ int cd(char *name) {
 			dirPath = strcat(dirPath, "\\");
 		dirPath = strcat(dirPath, name);
 	}
-	cur_dir = temp_dir;
+	nowDir = temp_dir;
 	return 0;
 }
 

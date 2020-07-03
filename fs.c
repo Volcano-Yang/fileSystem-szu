@@ -36,7 +36,6 @@ void writeTerminalHead() {
 
 
 /* 初始化部分 */
-//todo: 这些函数还有优化
 void initfile() {
     console("initfile");
     //创建空间
@@ -45,7 +44,7 @@ void initfile() {
     printf("成功创建了一个100M的block.dat用来模拟文件系统\n");
 }
 
-void judge() {
+void initRoot() {
     console("enter");
 	
 	fdisk = (char*)malloc(MEM_D_SIZE * sizeof(char));
@@ -63,13 +62,13 @@ void judge() {
 
     else{
         fat = (struct fatitem*)(fdisk + DISKSIZE);
-	    root = (struct direct*)(fdisk + DISKSIZE + FATSIZE);
+	    root = (struct dirOrFile*)(fdisk + DISKSIZE + FATSIZE);
 	    for (int i = 0; i < MOFN; i++) {
 	    	strcpy(openFile.opeitem[i].name, "");
 	    	openFile.opeitem[i].size = 0;
 	    	openFile.opeitem[i].firstdisk = -1;
 	    }
-	    cur_dir = root;
+	    nowDir = root;
 	    dirPath = (char *)malloc(DIR_MAXSIZE * sizeof(char));
 	    openFile.cur_size = 0;
         strcpy(dirPath, "Root");
@@ -94,31 +93,31 @@ void format() {
 		fat[i].item = -1;
 		fat[i].em_disk = '0';
 	}
-	root = (struct direct*)(fdisk + DISKSIZE + FATSIZE);
-	root->directitem[0].sign = 1;
-	root->directitem[0].firstdisk = ROOT_DISK_NO;
-	strcpy(root->directitem[0].name, ".");
-	root->directitem[0].next = root->directitem[0].firstdisk;
-	root->directitem[0].property = '1';
-	root->directitem[0].size = ROOT_DISK_SIZE;
+	root = (struct dirOrFile*)(fdisk + DISKSIZE + FATSIZE);
+	root->dirOrFileitem[0].sign = 1;
+	root->dirOrFileitem[0].firstdisk = ROOT_DISK_NO;
+	strcpy(root->dirOrFileitem[0].name, ".");
+	root->dirOrFileitem[0].next = root->dirOrFileitem[0].firstdisk;
+	root->dirOrFileitem[0].property = '1';
+	root->dirOrFileitem[0].size = ROOT_DISK_SIZE;
 
-	root->directitem[1].sign = 1;
-	root->directitem[1].firstdisk = ROOT_DISK_NO;
-	strcpy(root->directitem[1].name, "..");
-	root->directitem[1].next = root->directitem[0].firstdisk;
-	root->directitem[1].property = '1';
-	root->directitem[1].size = ROOT_DISK_SIZE;
+	root->dirOrFileitem[1].sign = 1;
+	root->dirOrFileitem[1].firstdisk = ROOT_DISK_NO;
+	strcpy(root->dirOrFileitem[1].name, "..");
+	root->dirOrFileitem[1].next = root->dirOrFileitem[0].firstdisk;
+	root->dirOrFileitem[1].property = '1';
+	root->dirOrFileitem[1].size = ROOT_DISK_SIZE;
 	if ((fp = fopen(DISKNAME, "wb")) == NULL) {
 		printf("Error:\nCannot open file\n");
 		return;
 	}
 	for (i = 2; i < MSD+2; i++) {
-		root->directitem[i].sign = 0;
-		root->directitem[i].firstdisk = -1;
-		strcpy(root->directitem[i].name, "");
-		root->directitem[i].next = -1;
-		root->directitem[i].property = '0';
-		root->directitem[i].size = 0;
+		root->dirOrFileitem[i].sign = 0;
+		root->dirOrFileitem[i].firstdisk = -1;
+		strcpy(root->dirOrFileitem[i].name, "");
+		root->dirOrFileitem[i].next = -1;
+		root->dirOrFileitem[i].property = '0';
+		root->dirOrFileitem[i].size = 0;
 	}
 	if ((fp = fopen(DISKNAME, "wb")) == NULL) {
 		printf("Error:\nCannot open file\n");
@@ -146,7 +145,7 @@ void start(){
 			return;
 		}
 	}
-	judge();
+	initRoot();
 	helpinfo();
 	writeTerminalHead();
     doMain();

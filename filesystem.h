@@ -15,9 +15,9 @@ struct fatitem {
 };
 
 
-struct opentable {
+struct openFile {
 	//当前打开的文件表
-	struct openttableitem {
+	struct openFileItem {
 		//文件名
 		char name[9];
 		//起始盘块号
@@ -30,7 +30,7 @@ struct opentable {
 };
 
 
-struct direct {
+struct dirOrFile {
 	//文件控制块信息
 	struct FCB {
 		//文件名
@@ -45,13 +45,13 @@ struct direct {
 		int next;
 		//1表示根目录
 		int sign;
-	}directitem[MSD + 2];
+	}dirOrFileitem[MSD + 2];
 };
 
 struct fatitem *fat;
-struct direct *root;
-struct direct *cur_dir;
-struct opentable openFile;
+struct dirOrFile *root;
+struct dirOrFile *nowDir;
+struct openFile openFile;
 //当前打开文件的下标
 int fd = -1; 
 char *dirPath;
