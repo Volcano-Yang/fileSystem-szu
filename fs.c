@@ -36,6 +36,7 @@ void writeTerminalHead() {
 
 
 /* 初始化部分 */
+//todo: 这些函数还有优化
 void initfile() {
     console("initfile");
     //创建空间
@@ -135,11 +136,11 @@ void start(){
     FILE *fp;
     char ch;
 	if ((fp = fopen(DISKNAME, "rb")) == NULL) {
-		printf("You have not format, do you want format?(y/s)");
+		printf("你还未进行文件系统的初始化，是否初始化?(y/n)");
 		scanf("%c", &ch);
 		if (ch == 'y') {
 			initfile();
-			printf("Succssfully format!\n");
+			printf("Success: 初始化成功!\n");
 		}
 		else {
 			return;
@@ -301,6 +302,7 @@ void doMain(){
                 printf("Error：写入失败!\n");
             }
 			writeTerminalHead();
+			//todo: 要注意关闭　不然会写混乱
 			break;
 		case 5: //read
 			scanf("%s", name);
@@ -353,7 +355,7 @@ void doMain(){
                 printf("Error：该项目名已经存在!\n");
                 break;
                 default:
-                printf("Success：创建项目成功!\n");
+                printf("Success：创建目录成功!\n");
             }
 			writeTerminalHead();
 			break;

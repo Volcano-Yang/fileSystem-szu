@@ -16,6 +16,7 @@ void console(char info[]){
     }
 }
 
+// todo: 函数逻辑还需优化
 int touch(char *name) {
     console("touch");
 	if (strlen(name) > 10){

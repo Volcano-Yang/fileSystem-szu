@@ -4,35 +4,56 @@
 #ifndef FILESYSTEM_H_INCLUDED
 #define FILESYSTEM_H_INCLUDED
 
-#define ENV 0 //定义当前环境　１为开发环境　０为生产环境
+//定义当前环境 １为开发环境 ０为生产环境
+#define ENV 0 
 
 struct fatitem {
+	//存放文件下一个磁盘的指针
 	int item;
+	//磁盘块是否空闲的标志位 ０为空闲
 	char em_disk;
 };
-struct direct {
-	struct FCB {
+
+
+struct opentable {
+	//当前打开的文件表
+	struct openttableitem {
+		//文件名
 		char name[9];
-		char property;
-		int size;
+		//起始盘块号
 		int firstdisk;
+		//文件的大小
+		int size;
+	}opeitem[MOFN];
+	//当前打开的文件数目
+	int cur_size;
+};
+
+
+struct direct {
+	//文件控制块信息
+	struct FCB {
+		//文件名
+		char name[9];
+		//0为普通文件 1为目录
+		char property;
+		//文件的大小
+		int size;
+		//起始盘块号
+		int firstdisk;
+		//子目录起始盘号
 		int next;
+		//1表示根目录
 		int sign;
 	}directitem[MSD + 2];
 };
-struct opentable {
-	struct openttableitem {
-		char name[9];
-		int firstdisk;
-		int size;
-	}opeitem[MOFN];
-	int cur_size;
-};
+
 struct fatitem *fat;
 struct direct *root;
 struct direct *cur_dir;
 struct opentable openFile;
-int fd = -1; //当前打开文件的下标
+//当前打开文件的下标
+int fd = -1; 
 char *dirPath;
 char *fdisk;
 void initfile();
