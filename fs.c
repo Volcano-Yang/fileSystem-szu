@@ -34,6 +34,13 @@ void writeTerminalHead() {
 	printf("VolcanoYang2017152032&%s>", dirPath);
 }
 
+void initOpenFile(){
+	 for (int i = 0; i < MOFN; i++) {
+	    	strcpy(openFile.opeitem[i].name, "");
+	    	openFile.opeitem[i].size = 0;
+	    	openFile.opeitem[i].firstdisk = -1;
+	    }
+}
 
 /* 初始化部分 */
 void initfile() {
@@ -63,11 +70,7 @@ void initRoot() {
     else{
         fat = (struct fatitem*)(fdisk + DISKSIZE);
 	    root = (struct dirOrFile*)(fdisk + DISKSIZE + FATSIZE);
-	    for (int i = 0; i < MOFN; i++) {
-	    	strcpy(openFile.opeitem[i].name, "");
-	    	openFile.opeitem[i].size = 0;
-	    	openFile.opeitem[i].firstdisk = -1;
-	    }
+	   	initOpenFile();
 	    nowDir = root;
 	    dirPath = (char *)malloc(DIR_MAXSIZE * sizeof(char));
 	    openFile.cur_size = 0;
@@ -80,19 +83,24 @@ void format() {
     console("format");
 	int i;
 	FILE *fp;
+	//初始化FAT表地址
 	fat = (struct fatitem*)(fdisk + DISKSIZE);
 	fat[0].item = -1;
 	fat[0].em_disk = '1';
+	//存放FAT表的磁盘块号
 	for (i = 1; i < ROOT_DISK_NO - 1; i++) {
 		fat[i].item = i + 1;
 		fat[i].em_disk = '1';
 	}
+	//存放根目录的磁盘块号
 	fat[ROOT_DISK_NO].item = -1;
 	fat[ROOT_DISK_NO].em_disk = '1';
 	for (i = ROOT_DISK_NO + 1; i < DISK_NUM; i++) {
 		fat[i].item = -1;
 		fat[i].em_disk = '0';
 	}
+
+	//计算根目录的地址
 	root = (struct dirOrFile*)(fdisk + DISKSIZE + FATSIZE);
 	root->dirOrFileitem[0].sign = 1;
 	root->dirOrFileitem[0].firstdisk = ROOT_DISK_NO;
@@ -101,17 +109,21 @@ void format() {
 	root->dirOrFileitem[0].property = '1';
 	root->dirOrFileitem[0].size = ROOT_DISK_SIZE;
 
+	console("format2");
 	root->dirOrFileitem[1].sign = 1;
 	root->dirOrFileitem[1].firstdisk = ROOT_DISK_NO;
 	strcpy(root->dirOrFileitem[1].name, "..");
 	root->dirOrFileitem[1].next = root->dirOrFileitem[0].firstdisk;
 	root->dirOrFileitem[1].property = '1';
 	root->dirOrFileitem[1].size = ROOT_DISK_SIZE;
+
+	console("format3");
+
 	if ((fp = fopen(DISKNAME, "wb")) == NULL) {
-		printf("Error:\nCannot open file\n");
+		printf("Error:\n打不开该文件\n");
 		return;
 	}
-	for (i = 2; i < MSD+2; i++) {
+	for (i = 2; (i-2) < MSD; i++) {
 		root->dirOrFileitem[i].sign = 0;
 		root->dirOrFileitem[i].firstdisk = -1;
 		strcpy(root->dirOrFileitem[i].name, "");
@@ -120,11 +132,14 @@ void format() {
 		root->dirOrFileitem[i].size = 0;
 	}
 	if ((fp = fopen(DISKNAME, "wb")) == NULL) {
-		printf("Error:\nCannot open file\n");
+		printf("Error:\n打不开该文件\n");
 		return;
 	}
-	if (fwrite(fdisk, MEM_D_SIZE, 1, fp) != 1) {
-		printf("Error:\nFile write error!\n");
+
+	//把虚拟磁盘空间保存到磁盘文件中去
+	int saveResult=fwrite(fdisk, MEM_D_SIZE, 1, fp);
+	if (saveResult != 1) {
+		printf("Error:\n写入磁盘文件失败!\n");
 	}
 	fclose(fp);
 }

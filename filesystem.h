@@ -58,7 +58,7 @@ char *dirPath;
 char *fdisk;
 void initfile();
 void format();
-void judge();
+void initRoot();
 void exitSystem();
 void console(char info[]);
 int touch(char *name);
